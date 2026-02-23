@@ -8,14 +8,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = "server.port=8080"
 )
-class FilmsApiHttpTest {
+class FilmorateApplicationTests {
 
     private static final String BASE = "http://localhost:8080";
     private static final Gson GSON = new Gson();
