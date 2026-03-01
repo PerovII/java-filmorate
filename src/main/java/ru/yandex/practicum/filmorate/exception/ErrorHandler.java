@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -14,26 +14,41 @@ public class ErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationException(MethodArgumentNotValidException exception) {
-        Map<String, String> errors = new HashMap<>();
-        exception.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-        log.warn("Ошибка валидации запроса: " + errors);
-        return errors;
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException exception) {
+
+        Map<String, String> errors = new LinkedHashMap<>();
+
+        exception.getBindingResult().getFieldErrors().forEach(err ->
+                errors.putIfAbsent(
+                        err.getField(),
+                        err.getDefaultMessage()
+                )
+        );
+
+        log.warn("Ошибка валидации: {}", errors);
+
+        return new ErrorResponse(errors);
     }
 
     @ExceptionHandler(EmptyIdException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleEmptyId(EmptyIdException exception) {
-        log.warn("Ошибка валидации запроса: " + exception.getMessage());
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleEmptyId(EmptyIdException exception) {
+
+        log.warn("Ошибка: {}", exception.getMessage());
+
+        return new ErrorResponse(
+                Map.of("id", exception.getMessage())
+        );
     }
 
     @ExceptionHandler(EmptyDataException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFound(EmptyDataException exception) {
-        log.warn("Ошибка: " + exception.getMessage());
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleNotFound(EmptyDataException exception) {
+
+        log.warn("Ошибка: {}", exception.getMessage());
+
+        return new ErrorResponse(
+                Map.of("error", exception.getMessage())
+        );
     }
 }
