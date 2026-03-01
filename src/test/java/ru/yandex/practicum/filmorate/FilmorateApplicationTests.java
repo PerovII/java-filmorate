@@ -69,7 +69,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Название не может быть пустым.",obj.get("name").getAsString());
+        assertEquals("Название не может быть пустым.",
+                obj.get("errors").getAsJsonObject().get("name").getAsString());
     }
 
     @Test
@@ -93,7 +94,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Максимальная длина описания — 200 символов.",obj.get("description").getAsString());
+        assertEquals("Максимальная длина описания — 200 символов.",
+                obj.get("errors").getAsJsonObject().get("description").getAsString());
     }
 
     @Test
@@ -172,7 +174,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Дата не может быть раньше 28.12.1895 г.",obj.get("releaseDate").getAsString());
+        assertEquals("Дата не может быть раньше 28.12.1895 г.",
+                obj.get("errors").getAsJsonObject().get("releaseDate").getAsString());
     }
 
     @Test
@@ -223,7 +226,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Продолжительность фильма должна быть больше 0",obj.get("duration").getAsString());
+        assertEquals("Продолжительность фильма должна быть больше 0",
+                obj.get("errors").getAsJsonObject().get("duration").getAsString());
     }
 
     @Test
@@ -246,7 +250,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Продолжительность фильма должна быть больше 0",obj.get("duration").getAsString());
+        assertEquals("Продолжительность фильма должна быть больше 0",
+                obj.get("errors").getAsJsonObject().get("duration").getAsString());
     }
 
     @Test
@@ -297,7 +302,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Email не может быть пустым",obj.get("email").getAsString());
+        assertEquals("Email не может быть пустым",
+                obj.get("errors").getAsJsonObject().get("email").getAsString());
     }
 
     @Test
@@ -320,7 +326,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Некорректный формат email",obj.get("email").getAsString());
+        assertEquals("Некорректный формат email",
+                obj.get("errors").getAsJsonObject().get("email").getAsString());
     }
 
     @Test
@@ -343,7 +350,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("логин не может быть пустым и содержать пробелы",obj.get("login").getAsString());
+        assertEquals("логин не может быть пустым и содержать пробелы",
+                obj.get("errors").getAsJsonObject().get("login").getAsString());
     }
 
     @Test
@@ -366,7 +374,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("логин не может быть пустым и содержать пробелы",obj.get("login").getAsString());
+        assertEquals("логин не может быть пустым и содержать пробелы",
+                obj.get("errors").getAsJsonObject().get("login").getAsString());
     }
 
     @Test
@@ -417,7 +426,8 @@ class FilmorateApplicationTests {
         JsonObject obj = GSON.fromJson(response.body(), JsonObject.class);
 
         assertEquals(400, response.statusCode());
-        assertEquals("Дата рождения не может быть в будущем",obj.get("birthday").getAsString());
+        assertEquals("Дата рождения не может быть в будущем",
+                obj.get("errors").getAsJsonObject().get("birthday").getAsString());
     }
 
 }
