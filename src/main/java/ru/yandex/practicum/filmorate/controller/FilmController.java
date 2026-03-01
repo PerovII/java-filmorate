@@ -7,21 +7,23 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EmptyDataException;
 import ru.yandex.practicum.filmorate.exception.EmptyIdException;
 import ru.yandex.practicum.filmorate.model.Film;
-
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Map<Long, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new ConcurrentHashMap<>();
+    private final AtomicLong idGenerator = new AtomicLong();
 
     @GetMapping
-    public Collection<Film> getAll() {
-        return films.values();
+    public List<Film> getAll() {
+        return new ArrayList<>(films.values());
     }
 
     @PostMapping
@@ -29,7 +31,7 @@ public class FilmController {
     public Film create(@Valid @RequestBody Film film) {
 
         log.info("Попытка создания фильма: " + film.getName());
-        film.setId(getNextId());
+        film.setId(idGenerator.incrementAndGet());
         films.put(film.getId(), film);
         log.info("Фильм создан. id = " + film.getId());
         return film;
@@ -51,12 +53,4 @@ public class FilmController {
         throw new EmptyDataException("Фильм с id = " + newFilm.getId() + " не найден.");
     }
 
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
-    }
 }
