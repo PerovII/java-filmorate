@@ -15,31 +15,29 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserStorage userStorage;
     private final UserService userService;
 
     public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
         this.userService = userService;
     }
 
     @GetMapping
     public List<User> getAll() {
         log.info("Получен запрос на получение всех пользователей");
-        return userStorage.getAll();
+        return userService.getAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@Valid  @RequestBody User user) {
         log.info("Получен запрос на создание нового пользователя {}", user.getName());
-        return userStorage.create(user);
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User newUser) {
         log.info("Получен запрос на обновление данных пользователя id = {}", newUser.getId());
-        return userStorage.update(newUser);
+        return userService.update(newUser);
     }
 
     @PutMapping("/{userId}/friends/{friendId}")

@@ -58,4 +58,19 @@ public class FilmService {
                 .limit(count)
                 .collect(Collectors.toList());
     }
+
+    public List<Film> getAll() {
+        log.info("Получение списка всех фильмов");
+        return filmStorage.getAll();
+    }
+
+    public Film create(Film film) {
+        log.info("Создание фильма: {}", film.getName());
+        return filmStorage.create(film);
+    }
+
+    public Film update(Film film) {
+        log.info("Обновление фильма id = {}", film.getId());
+        return filmStorage.update(film);
+    }
 }
