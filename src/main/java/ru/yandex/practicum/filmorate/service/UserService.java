@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -51,13 +48,10 @@ public class UserService {
         User user = userStorage.getById(userId);
         User otherUser = userStorage.getById(otherUserId);
 
-        Set<Long> commonFriendsIds = new HashSet<>(user.getFriends());
-        commonFriendsIds.retainAll(otherUser.getFriends());
-
-        List<User> commonFriends = new ArrayList<>();
-        for (Long id : commonFriendsIds) {
-            commonFriends.add(userStorage.getById(id));
-        }
+        List<User> commonFriends = user.getFriends().stream()
+                .filter(otherUser.getFriends()::contains)
+                .map(userStorage::getById)
+                .toList();
 
         log.info("Найдено {} общих друзей у пользователей с id = {} и id = {}",
                 commonFriends.size(), userId, otherUserId);
@@ -70,13 +64,27 @@ public class UserService {
 
         User user = userStorage.getById(userId);
 
-        List<User> friends = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
-            friends.add(userStorage.getById(friendId));
-        }
+        List<User> friends = user.getFriends().stream()
+                .map(userStorage::getById)
+                .toList();
 
         log.info("У пользователя с id = {} найдено {} друзей", userId, friends.size());
         return friends;
+    }
+
+    public List<User> getAll() {
+        log.info("Получение списка всех пользователей");
+        return userStorage.getAll();
+    }
+
+    public User create(User user) {
+        log.info("Создание пользователя: {}", user.getLogin());
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        log.info("Обновление пользователя id = {}", user.getId());
+        return userStorage.update(user);
     }
 
 }
