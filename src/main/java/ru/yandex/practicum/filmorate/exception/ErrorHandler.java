@@ -51,4 +51,15 @@ public class ErrorHandler {
                 Map.of("error", exception.getMessage())
         );
     }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(ValidationException exception) {
+
+        log.warn("Ошибка: {}", exception.getMessage());
+
+        return new ErrorResponse(
+                Map.of("error", exception.getMessage())
+        );
+    }
 }

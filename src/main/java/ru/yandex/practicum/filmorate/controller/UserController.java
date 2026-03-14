@@ -5,60 +5,68 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EmptyDataException;
-import ru.yandex.practicum.filmorate.exception.EmptyIdException;
 import ru.yandex.practicum.filmorate.model.User;
-
-import java.util.ArrayList;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<Long, User> users = new ConcurrentHashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong();
+    private final UserService userService;
+
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> getAll() {
-        return new ArrayList<>(users.values());
+        log.info("Получен запрос на получение всех пользователей");
+        return userService.getAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@Valid  @RequestBody User user) {
-        normalizeName(user);
-        log.info("Попытка создания пользователя: " + user.getName());
-        user.setId(idGenerator.incrementAndGet());
-        users.put(user.getId(), user);
-        log.info("Пользователь создан. id = " + user.getId());
-        return user;
+        log.info("Получен запрос на создание нового пользователя {}", user.getName());
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User newUser) {
-        normalizeName(newUser);
-        if (newUser.getId() == null) {
-            throw new EmptyIdException("Id должен быть указан");
-        }
-        log.info("Попытка обновления пользователя id = " + newUser.getId());
-        if (users.containsKey(newUser.getId())) {
-
-            users.put(newUser.getId(), newUser);
-            log.info("Пользователь успешно обновлён. id = " + newUser.getId());
-            return  newUser;
-        }
-        throw new EmptyDataException("Пользователь с id = " + newUser.getId() + " не найден.");
+        log.info("Получен запрос на обновление данных пользователя id = {}", newUser.getId());
+        return userService.update(newUser);
     }
 
-    private void normalizeName(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+    @PutMapping("/{userId}/friends/{friendId}")
+    public User addFriend(@PathVariable long userId, @PathVariable long friendId) {
+        log.info("Получен запрос на добавление пользователя id = {} в друзья к пользователю id = {}",
+                friendId, userId);
+        return userService.addFriend(userId, friendId);
     }
+
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    public User deleteFriend(@PathVariable long userId, @PathVariable long friendId) {
+        log.info("Получен запрос на удаление пользователя id = {} из друзей пользователя id = {}",
+                friendId, userId);
+        return userService.deleteFriend(userId, friendId);
+    }
+
+    @GetMapping("/{userId}/friends")
+    public List<User> getFriends(@PathVariable long userId) {
+        log.info("Получен запрос на получение списка друзей пользователя id = {}", userId);
+        return userService.getFriends(userId);
+    }
+
+    @GetMapping("/{userId}/friends/common/{otherUserId}")
+    public List<User> getCommonFriends(@PathVariable long userId, @PathVariable long otherUserId) {
+        log.info("Получен запрос на получение списка общих друзей между пользователями с id = {} и id = {}",
+                userId, otherUserId);
+        return userService.getCommonFriends(userId, otherUserId);
+    }
+
+
 
 }
