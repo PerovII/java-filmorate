@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,8 +24,8 @@ public class UserService {
         User user = userStorage.getById(userId);
         User friend = userStorage.getById(friendId);
 
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        user.getFriends().put(friendId, FriendshipStatus.UNCONFIRMED);
+        friend.getFriends().put(userId, FriendshipStatus.CONFIRMED);
 
         log.info("Пользователь с id = {} добавлен в друзья пользователю с id = {}", friendId, userId);
         return user;
@@ -48,8 +50,10 @@ public class UserService {
         User user = userStorage.getById(userId);
         User otherUser = userStorage.getById(otherUserId);
 
-        List<User> commonFriends = user.getFriends().stream()
-                .filter(otherUser.getFriends()::contains)
+        List<User> commonFriends = user.getFriends().entrySet().stream()
+                .filter(entry -> entry.getValue() == FriendshipStatus.CONFIRMED)
+                .map(Map.Entry::getKey)
+                .filter(id -> otherUser.getFriends().get(id) == FriendshipStatus.CONFIRMED)
                 .map(userStorage::getById)
                 .toList();
 
@@ -64,8 +68,9 @@ public class UserService {
 
         User user = userStorage.getById(userId);
 
-        List<User> friends = user.getFriends().stream()
-                .map(userStorage::getById)
+        List<User> friends = user.getFriends().entrySet().stream()
+                .filter(entry -> entry.getValue() == FriendshipStatus.CONFIRMED)
+                .map(entry -> userStorage.getById(entry.getKey()))
                 .toList();
 
         log.info("У пользователя с id = {} найдено {} друзей", userId, friends.size());
