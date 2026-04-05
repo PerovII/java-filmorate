@@ -6,28 +6,31 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 @Repository("filmDbStorage")
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
-    private static final String FIND_ALL_QUERY = "SELECT f.*, r.name AS rating_name FROM films f LEFT JOIN film_ratings r ON f.rating_id = r.rating_id";
-    private static final String FIND_BY_ID_QUERY = "SELECT f.*, r.name AS rating_name FROM films f LEFT JOIN film_ratings r ON f.rating_id = r.rating_id WHERE f.film_id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ? WHERE film_id = ?";
+    private static final String FIND_ALL_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
+            "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id";
+    private static final String FIND_BY_ID_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
+            "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id WHERE f.film_id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO films " +
+            "(name, description, release_date, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, " +
+            "release_date = ?, duration = ?, rating_id = ? WHERE film_id = ?";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE film_id = ?";
-
     private static final String ADD_LIKE_QUERY = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
     private static final String REMOVE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
-    private static final String GET_POPULAR_QUERY = "SELECT f.*, r.name AS rating_name FROM films f LEFT JOIN film_ratings r ON f.rating_id = r.rating_id LEFT JOIN film_likes fl ON f.film_id = fl.film_id GROUP BY f.film_id ORDER BY COUNT(fl.user_id) DESC LIMIT ?";
-
+    private static final String GET_POPULAR_QUERY = "SELECT f.*, r.name AS rating_name FROM films f " +
+            "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+            "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
+            "GROUP BY f.film_id ORDER BY COUNT(fl.user_id) DESC LIMIT ?";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRE_QUERY = "DELETE FROM film_genre WHERE film_id = ?";
-    private static final String GET_GENRES_BY_FILM_ID_QUERY = "SELECT g.genre_id, g.name FROM genres g JOIN film_genre fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
+    private static final String GET_GENRES_BY_FILM_ID_QUERY = "SELECT g.genre_id, g.name " +
+            "FROM genres g JOIN film_genre fg ON g.genre_id = fg.genre_id WHERE fg.film_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);

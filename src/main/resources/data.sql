@@ -1,14 +1,12 @@
-INSERT INTO film_ratings (rating_id, name) VALUES
-(1, 'G'),
-(2, 'PG'),
-(3, 'PG-13'),
-(4, 'R'),
-(5, 'NC-17');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (1, 'Комедия');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (2, 'Драма');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (3, 'Мультфильм');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (4, 'Триллер');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (5, 'Документальный');
+MERGE INTO genres (genre_id, name) KEY (genre_id) VALUES (6, 'Боевик');
 
-INSERT INTO genres (genre_id, name) VALUES
-(1, 'Комедия'),
-(2, 'Драма'),
-(3, 'Мультфильм'),
-(4, 'Триллер'),
-(5, 'Документальный'),
-(6, 'Боевик');
+MERGE INTO film_ratings (rating_id, name) KEY (rating_id) VALUES (1, 'G');
+MERGE INTO film_ratings (rating_id, name) KEY (rating_id) VALUES (2, 'PG');
+MERGE INTO film_ratings (rating_id, name) KEY (rating_id) VALUES (3, 'PG-13');
+MERGE INTO film_ratings (rating_id, name) KEY (rating_id) VALUES (4, 'R');
+MERGE INTO film_ratings (rating_id, name) KEY (rating_id) VALUES (5, 'NC-17');

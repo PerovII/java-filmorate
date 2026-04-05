@@ -14,14 +14,22 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
     private static final String FIND_BY_EMAIL_QUERY = "SELECT * FROM users WHERE email = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE user_id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO users(email, login, name, birthday) VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-    private static final String CHECK_FRIEND_QUERY = "SELECT friendship_status FROM friends WHERE user_id = ? AND friend_id = ?";
-    private static final String INSERT_FRIEND_QUERY = "INSERT INTO friends (user_id, friend_id, friendship_status) VALUES (?, ?, ?)";
-    private static final String UPDATE_FRIEND_STATUS_QUERY = "UPDATE friends SET friendship_status = ? WHERE user_id = ? AND friend_id = ?";
-    private static final String REMOVE_FRIEND_QUERY = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
-    private static final String GET_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friends f ON u.user_id = f.friend_id WHERE f.user_id = ?";
-    private static final String CHECK_FRIENDSHIP_EXISTS_QUERY = "SELECT count(*) FROM friends WHERE user_id = ? AND friend_id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO users(email, login, name, birthday) " +
+            "VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
+            "WHERE user_id = ?";
+    private static final String CHECK_FRIEND_QUERY = "SELECT friendship_status FROM friends " +
+            "WHERE user_id = ? AND friend_id = ?";
+    private static final String INSERT_FRIEND_QUERY = "INSERT INTO friends (user_id, friend_id, friendship_status) " +
+            "VALUES (?, ?, ?)";
+    private static final String UPDATE_FRIEND_STATUS_QUERY = "UPDATE friends SET friendship_status = ? " +
+            "WHERE user_id = ? AND friend_id = ?";
+    private static final String REMOVE_FRIEND_QUERY = "DELETE FROM friends " +
+            "WHERE user_id = ? AND friend_id = ?";
+    private static final String GET_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friends f ON u.user_id = f.friend_id " +
+            "WHERE f.user_id = ?";
+    private static final String CHECK_FRIENDSHIP_EXISTS_QUERY = "SELECT count(*) FROM friends " +
+            "WHERE user_id = ? AND friend_id = ?";
     private static final String GET_COMMON_FRIENDS_QUERY = "SELECT u.* FROM users u " +
             "JOIN friends f1 ON u.user_id = f1.friend_id " +
             "JOIN friends f2 ON u.user_id = f2.friend_id " +
@@ -32,13 +40,19 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public List<User> findAll() { return findMany(FIND_ALL_QUERY); }
+    public List<User> findAll() {
+        return findMany(FIND_ALL_QUERY);
+    }
 
     @Override
-    public Optional<User> findByEmail(String email) { return findOne(FIND_BY_EMAIL_QUERY, email); }
+    public Optional<User> findByEmail(String email) {
+        return findOne(FIND_BY_EMAIL_QUERY, email);
+    }
 
     @Override
-    public Optional<User> findById(long userId) { return findOne(FIND_BY_ID_QUERY, userId); }
+    public Optional<User> findById(long userId) {
+        return findOne(FIND_BY_ID_QUERY, userId);
+    }
 
     @Override
     public User save(User user) {
@@ -72,9 +86,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public void removeFriend(long userId, long friendId) {
-        // Удаляем свою заявку
         jdbc.update(REMOVE_FRIEND_QUERY, userId, friendId);
-        // Если была взаимная дружба, понижаем статус встречной заявки до 0
         jdbc.update(UPDATE_FRIEND_STATUS_QUERY, 0, friendId, userId);
     }
 

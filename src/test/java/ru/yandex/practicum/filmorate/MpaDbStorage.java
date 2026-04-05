@@ -39,7 +39,7 @@ class MpaDbStorageTest {
                 .isPresent()
                 .hasValueSatisfying(rating -> {
                     assertThat(rating).hasFieldOrPropertyWithValue("id", 1L);
-                    assertThat(rating).hasFieldOrPropertyWithValue("name", "0+");
+                    assertThat(rating).hasFieldOrPropertyWithValue("name", "G");
                 });
     }
 }
