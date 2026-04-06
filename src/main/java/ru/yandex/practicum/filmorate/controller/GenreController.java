@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import java.util.List;
 
@@ -15,17 +15,17 @@ import java.util.List;
 @RequestMapping("/genres")
 @RequiredArgsConstructor
 public class GenreController {
-    private final GenreService service;
+    private final GenreService genreService;
 
     @GetMapping
-    public List<Genre> getAll() {
+    public List<GenreDto> getAll() {
         log.info("Запрос на получение списка жанров");
-        return service.getAll();
+        return genreService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Genre getById(@PathVariable long id) {
+    public GenreDto getById(@PathVariable long id) {
         log.info("Запрос на получение названия жанра с id={}", id);
-        return service.getById(id);
+        return genreService.getById(id);
     }
 }

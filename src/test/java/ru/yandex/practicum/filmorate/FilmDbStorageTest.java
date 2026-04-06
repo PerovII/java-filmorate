@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.dal.UserDbStorage;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmRating;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -107,7 +107,7 @@ class FilmDbStorageTest {
         film.setReleaseDate(release);
         film.setDuration(duration);
 
-        FilmRating mpa = new FilmRating();
+        Mpa mpa = new Mpa();
         mpa.setId(mpaId);
         film.setMpa(mpa);
 

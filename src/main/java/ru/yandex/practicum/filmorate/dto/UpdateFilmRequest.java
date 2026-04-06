@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.model.FilmRating;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.validation.MinDate;
 
@@ -29,6 +29,6 @@ public class UpdateFilmRequest {
     @Positive(message = "Продолжительность фильма должна быть больше 0")
     private int duration;
 
-    private FilmRating mpa;
+    private Mpa mpa;
     private List<Genre> genres;
 }

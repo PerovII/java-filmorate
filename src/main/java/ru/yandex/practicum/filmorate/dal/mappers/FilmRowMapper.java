@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.dal.mappers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmRating;
-
+import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@Slf4j
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
     @Override
@@ -21,13 +22,13 @@ public class FilmRowMapper implements RowMapper<Film> {
         }
         film.setDuration(rs.getInt("duration"));
 
-        FilmRating mpa = new FilmRating();
+        Mpa mpa = new Mpa();
         mpa.setId(rs.getLong("rating_id"));
-        // Имя рейтинга должно извлекаться через JOIN в запросе
         try {
             mpa.setName(rs.getString("rating_name"));
-        } catch (SQLException ignored) {
-            // Если колонка отсутствует в конкретном запросе
+        } catch (SQLException exception) {
+            log.warn("Колонка 'rating_name' отсутствует в ResultSet. " +
+                    "Название рейтинга MPA не заполнено для фильма с id = {}", film.getId());
         }
         film.setMpa(mpa);
 

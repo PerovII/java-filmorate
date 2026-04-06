@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.MpaDbStorage;
 import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
-import ru.yandex.practicum.filmorate.model.FilmRating;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +25,7 @@ class MpaDbStorageTest {
 
     @Test
     public void testFindAll() {
-        List<FilmRating> ratings = mpaStorage.findAll();
+        List<Mpa> ratings = mpaStorage.findAll();
 
         assertThat(ratings).isNotEmpty();
         assertThat(ratings).hasSize(5);
@@ -33,7 +33,7 @@ class MpaDbStorageTest {
 
     @Test
     public void testFindById() {
-        Optional<FilmRating> ratingOptional = mpaStorage.findById(1);
+        Optional<Mpa> ratingOptional = mpaStorage.findById(1);
 
         assertThat(ratingOptional)
                 .isPresent()

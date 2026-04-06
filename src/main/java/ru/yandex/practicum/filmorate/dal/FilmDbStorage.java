@@ -6,8 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository("filmDbStorage")
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
@@ -39,7 +38,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public List<Film> findAll() {
         List<Film> films = findMany(FIND_ALL_QUERY);
-        films.forEach(this::loadGenres);
+        loadGenresForFilms(films);
         return films;
     }
 
@@ -83,7 +82,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public List<Film> getPopular(int count) {
         List<Film> films = findMany(GET_POPULAR_QUERY, count);
-        films.forEach(this::loadGenres);
+        loadGenresForFilms(films);
         return films;
     }
 
@@ -107,5 +106,38 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             return genre;
         }, film.getId());
         film.setGenres(genres);
+    }
+
+    private void loadGenresForFilms(List<Film> films) {
+        if (films == null || films.isEmpty()) {
+            return;
+        }
+
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+
+        String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+
+        String query = String.format(
+                "SELECT fg.film_id, g.genre_id, g.name " +
+                        "FROM film_genre fg " +
+                        "JOIN genres g ON fg.genre_id = g.genre_id " +
+                        "WHERE fg.film_id IN (%s)", inSql);
+
+        Map<Long, List<Genre>> genresByFilmId = new HashMap<>();
+
+        jdbc.query(query, rs -> {
+            long filmId = rs.getLong("film_id");
+            Genre genre = new Genre();
+            genre.setId(rs.getLong("genre_id"));
+            genre.setName(rs.getString("name"));
+
+            genresByFilmId.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+        }, filmIds.toArray());
+
+        for (Film film : films) {
+            film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
+        }
     }
 }

@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS films (
 CREATE TABLE IF NOT EXISTS friends (
     user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     friend_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    friendship_status INTEGER NOT NULL,
     PRIMARY KEY (user_id, friend_id)
 );
 

@@ -12,6 +12,6 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
-    private FilmRating mpa;
+    private Mpa mpa;
     private List<Genre> genres = new ArrayList<>();
 }
