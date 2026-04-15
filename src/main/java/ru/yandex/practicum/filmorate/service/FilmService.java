@@ -8,12 +8,14 @@ import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,15 +27,17 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
+    private final EventService eventService;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("mpaDbStorage") MpaStorage mpaStorage,
-                       @Qualifier("genreDbStorage") GenreStorage genreStorage) {
+                       @Qualifier("genreDbStorage") GenreStorage genreStorage, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.eventService = eventService;
     }
 
     public List<FilmDto> getAll() {
@@ -70,12 +74,18 @@ public class FilmService {
         filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("Фильм не найден"));
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         filmStorage.addLike(filmId, userId);
+
+        // Добавляем событие о лайке
+        eventService.addEvent(userId, Event.EventType.LIKE, Event.Operation.ADD, filmId);
     }
 
     public void removeLike(long filmId, long userId) {
         filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("Фильм не найден"));
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         filmStorage.removeLike(filmId, userId);
+
+        // Добавляем событие об удалении лайка
+        eventService.addEvent(userId, Event.EventType.LIKE, Event.Operation.REMOVE, filmId);
     }
 
     public List<FilmDto> getPopularFilms(int count) {
