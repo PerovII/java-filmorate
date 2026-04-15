@@ -2,11 +2,13 @@ package ru.yandex.practicum.filmorate.dal;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -31,8 +33,8 @@ public class BaseDbStorage<T> {
         return jdbc.query(query, mapper, params);
     }
 
-    protected boolean delete(String query, long id) {
-        int rowsDeleted = jdbc.update(query, id);
+    protected boolean delete(String query, Object... params) {
+        int rowsDeleted = jdbc.update(query, params);
         return rowsDeleted > 0;
     }
 
@@ -45,21 +47,30 @@ public class BaseDbStorage<T> {
 
     protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            for (int idx = 0; idx < params.length; idx++) {
-                ps.setObject(idx + 1, params[idx]);
+        try {
+            jdbc.update(connection -> {
+                PreparedStatement ps = connection
+                        .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+                for (int idx = 0; idx < params.length; idx++) {
+                    ps.setObject(idx + 1, params[idx]);
+                }
+                return ps;
+            }, keyHolder);
+
+            if (keyHolder.getKeys().size() > 1) {
+                return (long) 1;
             }
-            return ps; }, keyHolder);
 
-        Long id = keyHolder.getKeyAs(Long.class);
+            Long id = keyHolder.getKeyAs(Long.class);
 
-        // Возвращаем id нового пользователя
-        if (id != null) {
-            return id;
-        } else {
-            throw new InternalServerException("Не удалось сохранить данные");
+            // Возвращаем id нового пользователя
+            if (id != null) {
+                return id;
+            } else {
+                throw new InternalServerException("Не удалось сохранить данные");
+            }
+        } catch (DuplicateKeyException e) {
+            return -1;
         }
     }
 
