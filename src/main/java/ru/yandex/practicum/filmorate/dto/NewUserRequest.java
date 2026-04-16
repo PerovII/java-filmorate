@@ -9,16 +9,16 @@ import java.time.LocalDate;
 
 @Data
 public class NewUserRequest {
-    @NotBlank(message = "Email не может быть пустым")
-    @Email(message = "Некорректный формат email")
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "Логин не может быть пустым")
-    @Pattern(regexp = "\\S+", message = "Логин не должен содержать пробелы")
+    @NotBlank(message = "Login cannot be empty")
+    @Pattern(regexp = "\\S+", message = "Login must not contain spaces")
     private String login;
 
     private String name;
 
-    @Past(message = "Дата рождения не может быть в будущем")
+    @Past(message = "Birth date cannot be in the future")
     private LocalDate birthday;
 }

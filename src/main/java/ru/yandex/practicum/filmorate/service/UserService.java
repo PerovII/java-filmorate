@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -23,13 +24,16 @@ public class UserService {
 
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final EventService eventService;
 
     public UserService(
             @Qualifier("userDbStorage") UserStorage userStorage,
             @Qualifier("filmDbStorage") FilmStorage filmStorage
     ) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, EventService eventService) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
+        this.eventService = eventService;
     }
 
     public List<UserDto> getAll() {
@@ -62,12 +66,18 @@ public class UserService {
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("Друг не найден"));
         userStorage.addFriend(userId, friendId);
+
+        // Добавляем событие о добавлении в друзья
+        eventService.addEvent(userId, Event.EventType.FRIEND, Event.Operation.ADD, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) {
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userStorage.findById(friendId).orElseThrow(() -> new NotFoundException("Друг не найден"));
         userStorage.removeFriend(userId, friendId);
+
+        // Добавляем событие об удалении из друзей
+        eventService.addEvent(userId, Event.EventType.FRIEND, Event.Operation.REMOVE, friendId);
     }
 
     public List<UserDto> getFriends(long userId) {
