@@ -53,6 +53,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFriend(@PathVariable long userId, @PathVariable long friendId) {
         log.info("Запрос на удаление пользователя id={} из друзей id={}", friendId, userId);
         userService.deleteFriend(userId, friendId);
@@ -74,5 +75,12 @@ public class UserController {
     public List<FilmDto> getRecommendations(@PathVariable Long id) {
         log.info("Запрос рекомендаций для пользователя с id={}", id);
         return userService.getRecommendations(id);
+    }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable long userId) {
+        log.info("Запрос на удаление пользователя id={}", userId);
+        userService.delete(userId);
     }
 }
