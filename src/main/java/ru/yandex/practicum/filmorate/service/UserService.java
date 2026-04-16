@@ -29,7 +29,8 @@ public class UserService {
     public UserService(
             @Qualifier("userDbStorage") UserStorage userStorage,
             @Qualifier("filmDbStorage") FilmStorage filmStorage,
-            EventService eventService) {
+            EventService eventService
+    ) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
         this.eventService = eventService;
