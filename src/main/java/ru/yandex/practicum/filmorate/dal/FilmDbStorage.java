@@ -48,24 +48,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     "ORDER BY likes_count DESC";
 
     private static final String SEARCH_BY_DIRECTOR =
-            "SELECT DISTINCT f.*, r.name AS rating_name, " +
-                    "(SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.film_id) as likes_count " +
+            "SELECT DISTINCT f.*, r.name AS rating_name " +
                     "FROM films f " +
                     "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
                     "LEFT JOIN film_directors fd ON f.film_id = fd.film_id " +
                     "LEFT JOIN directors d ON fd.director_id = d.director_id " +
                     "WHERE LOWER(d.name) LIKE ? " +
-                    "ORDER BY likes_count DESC";
+                    "ORDER BY f.film_id";
 
     private static final String SEARCH_BY_BOTH =
-            "SELECT DISTINCT f.*, r.name AS rating_name, " +
-                    "(SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.film_id) as likes_count " +
+            "SELECT DISTINCT f.*, r.name AS rating_name " +
                     "FROM films f " +
                     "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
                     "LEFT JOIN film_directors fd ON f.film_id = fd.film_id " +
                     "LEFT JOIN directors d ON fd.director_id = d.director_id " +
                     "WHERE (LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?) " +
-                    "ORDER BY likes_count DESC";
+                    "ORDER BY f.film_id";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -263,12 +261,21 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         String searchPattern = "%" + query.toLowerCase() + "%";
         List<Film> films;
 
-        if (by.equals("title")) {
+        String normalizedBy = by.toLowerCase().trim();
+
+        if (normalizedBy.equals("title")) {
             films = findMany(SEARCH_BY_TITLE, searchPattern);
-        } else if (by.equals("director")) {
+        } else if (normalizedBy.equals("director")) {
             films = findMany(SEARCH_BY_DIRECTOR, searchPattern);
-        } else {
+        } else if (normalizedBy.equals("title,director") || normalizedBy.equals("director,title")) {
             films = findMany(SEARCH_BY_BOTH, searchPattern, searchPattern);
+        } else {
+            throw new IllegalArgumentException("Invalid search parameter: " + by);
+        }
+
+        if (films != null && !films.isEmpty()) {
+            loadGenresForFilms(films);
+            loadDirectorsForFilms(films);
         }
 
         loadGenresForFilms(films);
