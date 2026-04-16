@@ -99,4 +99,25 @@ public class FilmService {
             }
         }
     }
+
+    public List<FilmDto> searchFilms(String query, String by) {
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException("Поисковый запрос не может быть пуст");
+        }
+        if (by == null || by.isBlank()) {
+            throw new IllegalArgumentException("Параметр 'by' не может быть пуст");
+        }
+
+        String normalizedBy = by.toLowerCase().trim().replaceAll("\\s+", "");
+
+        if (!normalizedBy.equals("title") && !normalizedBy.equals("director") && !normalizedBy.equals("title,director")
+                && !normalizedBy.equals("director,title")) {
+            throw new IllegalArgumentException("Параметр 'by' может принимать значения: " +
+                    "title, director");
+        }
+
+        return filmStorage.searchFilms(query, by).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
 }
