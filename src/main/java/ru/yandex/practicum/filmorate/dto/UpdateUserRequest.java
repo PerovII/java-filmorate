@@ -9,18 +9,18 @@ import java.time.LocalDate;
 
 @Data
 public class UpdateUserRequest {
-    @NotNull(message = "ID не может быть пустым")
+    @NotNull(message = "ID cannot be null")
     private Long id;
 
-    @Email(message = "Некорректный формат email")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @Pattern(regexp = "\\S+", message = "Логин не должен содержать пробелы")
+    @Pattern(regexp = "\\S+", message = "Login must not contain spaces")
     private String login;
 
     private String name;
 
-    @Past(message = "Дата рождения не может быть в будущем")
+    @Past(message = "Birth date cannot be in the future")
     private LocalDate birthday;
 
     public boolean hasEmail() {
