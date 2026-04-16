@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+
 import java.util.*;
 
 @Repository("filmDbStorage")
@@ -139,5 +140,32 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         for (Film film : films) {
             film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
         }
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+
+        String sql = """
+                SELECT f.*
+                FROM films f
+                JOIN film_likes fl2 ON f.film_id = fl2.film_id
+                WHERE fl2.user_id = (
+                    SELECT fl2.user_id
+                    FROM film_likes fl1
+                    JOIN film_likes fl2 ON fl1.film_id = fl2.film_id
+                    WHERE fl1.user_id = ?
+                      AND fl2.user_id <> ?
+                    GROUP BY fl2.user_id
+                    ORDER BY COUNT(*) DESC
+                    LIMIT 1
+                )
+                AND f.film_id NOT IN (
+                    SELECT film_id
+                    FROM film_likes
+                    WHERE user_id = ?
+                )
+                """;
+
+        return findMany(sql, userId, userId, userId);
     }
 }

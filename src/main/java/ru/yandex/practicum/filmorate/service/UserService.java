@@ -3,13 +3,17 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,9 +22,14 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
 
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
+    public UserService(
+            @Qualifier("userDbStorage") UserStorage userStorage,
+            @Qualifier("filmDbStorage") FilmStorage filmStorage
+    ) {
         this.userStorage = userStorage;
+        this.filmStorage = filmStorage;
     }
 
     public List<UserDto> getAll() {
@@ -72,5 +81,15 @@ public class UserService {
         return userStorage.getCommonFriends(userId, otherUserId).stream()
                 .map(UserMapper::mapToUserDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<FilmDto> getRecommendations(Long userId) {
+
+        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        List<FilmDto> filmDtoList = filmStorage.getRecommendations(userId).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+        log.info("Найдено рекомендованных фильмов {} для пользователя с id {}", filmDtoList.size(), userId);
+        return filmDtoList;
     }
 }
