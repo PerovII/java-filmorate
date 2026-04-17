@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,15 +25,18 @@ public class FilmService {
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
     private final EventService eventService;
+    private final DirectorStorage directorStorage;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("mpaDbStorage") MpaStorage mpaStorage,
-                       @Qualifier("genreDbStorage") GenreStorage genreStorage, EventService eventService) {
+                       @Qualifier("genreDbStorage") GenreStorage genreStorage,
+                       @Qualifier("directorDbStorage") DirectorStorage directorStorage, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
         this.eventService = eventService;
     }
 
@@ -127,6 +127,17 @@ public class FilmService {
         }
 
         return filmStorage.searchFilms(query, by).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<FilmDto> getFilmsByDirector(long directorId, String sortBy) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссёр не найден с id=" + directorId));
+
+        List<Film> films = filmStorage.getFilmsByDirector(directorId, sortBy);
+
+        return films.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
     }

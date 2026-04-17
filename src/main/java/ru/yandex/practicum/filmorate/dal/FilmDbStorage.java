@@ -65,6 +65,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     "WHERE (LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?) " +
                     "ORDER BY f.film_id";
 
+    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR =
+            "SELECT f.*, r.name AS rating_name FROM films f " +
+                    "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                    "JOIN film_directors fd ON f.film_id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "ORDER BY f.release_date";
+
+    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES =
+            "SELECT f.*, r.name AS rating_name, COUNT(fl.user_id) as likes_count FROM films f " +
+                    "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                    "JOIN film_directors fd ON f.film_id = fd.film_id " +
+                    "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "GROUP BY f.film_id " +
+                    "ORDER BY likes_count DESC";
+
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }
@@ -95,6 +111,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Film update(Film film) {
         update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
         updateGenres(film);
+        updateDirectors(film);
         return film;
     }
 
@@ -252,7 +269,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     .distinct()
                     .map(directorId -> new Object[]{film.getId(), directorId})
                     .toList();
-            jdbc.batchUpdate(INSERT_FILM_DIRECTORS_QUERY, batch);
+            if (!batch.isEmpty()) {
+                jdbc.batchUpdate(INSERT_FILM_DIRECTORS_QUERY, batch);
+            }
         }
     }
 
@@ -278,8 +297,24 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             loadDirectorsForFilms(films);
         }
 
-        loadGenresForFilms(films);
-        loadDirectorsForFilms(films);
-        return films;
+        return films != null ? films : new ArrayList<>();
+    }
+
+    @Override
+    public List<Film> getFilmsByDirector(long directorId, String sortBy) {
+        List<Film> films;
+
+        if ("year".equalsIgnoreCase(sortBy)) {
+            films = findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR, directorId);
+        } else {
+            films = findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES, directorId);
+        }
+
+        if (films != null && !films.isEmpty()) {
+            loadGenresForFilms(films);
+            loadDirectorsForFilms(films);
+        }
+
+        return films != null ? films : new ArrayList<>();
     }
 }

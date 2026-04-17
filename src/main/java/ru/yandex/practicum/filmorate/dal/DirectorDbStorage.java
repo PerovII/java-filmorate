@@ -90,4 +90,9 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
     public void removeDirectorsFromFilm(long filmId) {
         jdbc.update(REMOVE_DIRECTORS_FROM_FILM, filmId);
     }
+
+    @Override
+    public void addDirectorToFilm(long filmId, long directorId) {
+        jdbc.update(ADD_DIRECTOR_TO_FILM, filmId, directorId);
+    }
 }

@@ -70,4 +70,12 @@ public class FilmController {
         log.info("Поиск фильмов: query='{}', by='{}'", query, by);
         return filmService.searchFilms(query, by);
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(
+            @PathVariable long directorId,
+            @RequestParam(required = false) String sortBy) {
+        log.info("Запрос на получение фильмов режиссёра id={}, sortBy={}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
 }
