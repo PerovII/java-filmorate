@@ -102,4 +102,11 @@ public class UserService {
         log.info("Найдено рекомендованных фильмов {} для пользователя с id {}", filmDtoList.size(), userId);
         return filmDtoList;
     }
+
+    public void delete(long userId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+        userStorage.delete(userId);
+        log.info("Пользователь id={} успешно удален", userId);
+    }
 }

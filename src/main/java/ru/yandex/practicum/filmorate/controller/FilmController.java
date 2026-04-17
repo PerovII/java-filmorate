@@ -52,6 +52,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeLike(@PathVariable long filmId, @PathVariable long userId) {
         log.info("Запрос на удаление лайка, фильм id = {}, пользователь id = {}", filmId, userId);
         filmService.removeLike(filmId, userId);
@@ -61,5 +62,12 @@ public class FilmController {
     public List<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("Запрос списка первых {} популярных фильмов", count);
         return filmService.getPopularFilms(count);
+    }
+
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable long filmId) {
+        log.info("Запрос на удаление фильма id={}", filmId);
+        filmService.delete(filmId);
     }
 }
