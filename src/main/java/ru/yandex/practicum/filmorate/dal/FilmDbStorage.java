@@ -273,6 +273,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 jdbc.batchUpdate(INSERT_FILM_DIRECTORS_QUERY, batch);
             }
         }
+        List<Director> directors = jdbc.query(GET_DIRECTORS_BY_FILM_ID_QUERY, (rs, rowNum) -> {
+            Director director = new Director();
+            director.setId(rs.getLong("director_id"));
+            director.setName(rs.getString("name"));
+            return director;
+        }, film.getId());
+        film.setDirectors(directors);
     }
 
     @Override
@@ -303,6 +310,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public List<Film> getFilmsByDirector(long directorId, String sortBy) {
         List<Film> films;
+
+        String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR =
+                "SELECT f.*, r.name AS rating_name FROM films f " +
+                        "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                        "INNER JOIN film_directors fd ON f.film_id = fd.film_id " +
+                        "WHERE fd.director_id = ? " +
+                        "ORDER BY f.release_date";
+
+        String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES =
+                "SELECT f.*, r.name AS rating_name, COUNT(fl.user_id) as likes_count FROM films f " +
+                        "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                        "INNER JOIN film_directors fd ON f.film_id = fd.film_id " +
+                        "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
+                        "WHERE fd.director_id = ? " +
+                        "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.name " +
+                        "ORDER BY likes_count DESC";
 
         if ("year".equalsIgnoreCase(sortBy)) {
             films = findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR, directorId);
