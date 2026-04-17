@@ -52,12 +52,20 @@ public final class FilmMapper {
             dto.setMpa(MpaMapper.mapToMpaDto(film.getMpa()));
         }
 
-        if (film.getGenres() != null) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             dto.setGenres(film.getGenres().stream()
                     .map(GenreMapper::mapToGenreDto)
                     .collect(Collectors.toList()));
         } else {
             dto.setGenres(new ArrayList<>());
+        }
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            dto.setDirectors(film.getDirectors().stream()
+                    .map(DirectorMapper::mapToDirectorDto)
+                    .collect(Collectors.toList()));
+        } else {
+            dto.setDirectors(new ArrayList<>());
         }
 
         return dto;
