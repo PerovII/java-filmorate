@@ -311,14 +311,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public List<Film> getFilmsByDirector(long directorId, String sortBy) {
         List<Film> films;
 
-        String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR =
+        String getFilmsByDirectorSortByYear =
                 "SELECT f.*, r.name AS rating_name FROM films f " +
                         "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
                         "INNER JOIN film_directors fd ON f.film_id = fd.film_id " +
                         "WHERE fd.director_id = ? " +
                         "ORDER BY f.release_date";
 
-        String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES =
+        String getFilmsByDirectorSortByLikes =
                 "SELECT f.*, r.name AS rating_name, COUNT(fl.user_id) as likes_count FROM films f " +
                         "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
                         "INNER JOIN film_directors fd ON f.film_id = fd.film_id " +
@@ -328,9 +328,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                         "ORDER BY likes_count DESC";
 
         if ("year".equalsIgnoreCase(sortBy)) {
-            films = findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR, directorId);
+            films = findMany(getFilmsByDirectorSortByYear, directorId);
         } else {
-            films = findMany(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES, directorId);
+            films = findMany(getFilmsByDirectorSortByLikes, directorId);
         }
 
         if (films != null && !films.isEmpty()) {
