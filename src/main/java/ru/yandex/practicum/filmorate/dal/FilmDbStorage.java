@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.*;
@@ -40,6 +41,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM film_directors WHERE film_id = ?";
     private static final String INSERT_FILM_DIRECTORS_QUERY = "INSERT INTO film_directors (film_id, director_id) " +
             "VALUES (?, ?)";
+    private static final String GET_POPULAR =
+            "SELECT f.*, r.name AS rating_name, COUNT(DISTINCT fl.user_id) as likes_count " +
+                    "FROM films f " +
+                    "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                    "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
+                    "LEFT JOIN film_genre fg ON f.film_id = fg.film_id " +
+                    "WHERE (:genreId IS NULL OR fg.genre_id = :genreId) " +
+                    "AND (:year IS NULL OR YEAR(f.release_date) = :year) " +
+                    "GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.name " +
+                    "ORDER BY likes_count DESC, f.film_id " +
+                    "LIMIT :count";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -97,11 +109,63 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
-        List<Film> films = findMany(GET_POPULAR_QUERY, count);
-        loadGenresForFilms(films);
-        loadDirectorsForFilms(films);
-        return films;
+    public List<Film> getPopular(int count, Long genreId, Integer year) {
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT f.*, r.name AS rating_name, COUNT(DISTINCT fl.user_id) as likes_count " +
+                        "FROM films f " +
+                        "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                        "LEFT JOIN film_likes fl ON f.film_id = fl.film_id "
+        );
+
+        List<Object> params = new ArrayList<>();
+
+        if(genreId != null) {
+            sql.append("LEFT JOIN film_genre fg ON f.film_id = fg.film_id");
+        }
+        List<String> conditions = new ArrayList<>();
+
+        if (genreId != null) {
+            conditions.add("fg.genre_id = ?");
+            params.add(genreId);
+        }
+
+        if (year != null) {
+            conditions.add("YEAR(f.release_date) = ?");
+            params.add(year);
+        }
+
+        if (!conditions.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
+
+        sql.append(" GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.name ");
+        sql.append(" ORDER BY likes_count DESC, f.film_id ");
+        sql.append(" LIMIT ?");
+        params.add(count);
+
+        List<Film> films = jdbc.query(sql.toString(), params.toArray(), (rs, rowNum) -> {
+            Film film = new Film();
+            film.setId(rs.getLong("film_id"));
+            film.setName(rs.getString("name"));
+            film.setDescription(rs.getString("description"));
+            film.setReleaseDate(rs.getDate("release_date") != null ? rs.getDate("release_date").toLocalDate() : null);
+            film.setDuration(rs.getInt("duration"));
+
+            Mpa mpa = new Mpa();
+            mpa.setId(rs.getLong("rating_id"));
+            mpa.setName(rs.getString("rating_name"));
+            film.setMpa(mpa);
+
+            return film;
+        });
+
+        if (films != null && !films.isEmpty()) {
+            loadGenresForFilms(films);
+            loadDirectorsForFilms(films);
+        }
+
+        return films != null ? films : new ArrayList<>();
     }
 
     private void updateGenres(Film film) {
