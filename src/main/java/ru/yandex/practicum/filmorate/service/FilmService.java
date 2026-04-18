@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,16 +25,19 @@ public class FilmService {
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
     private final EventService eventService;
+    private final DirectorStorage directorStorage;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("mpaDbStorage") MpaStorage mpaStorage,
-                       @Qualifier("genreDbStorage") GenreStorage genreStorage, EventService eventService) {
+                       @Qualifier("genreDbStorage") GenreStorage genreStorage,
+                       @Qualifier("directorDbStorage") DirectorStorage directorStorage, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
         this.eventService = eventService;
+        this.directorStorage = directorStorage;
     }
 
     public List<FilmDto> getAll() {
@@ -115,5 +115,39 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм с id " + filmId + " не найден"));
         filmStorage.delete(filmId);
         log.info("Фильм id={} успешно удален", filmId);
+    }
+
+    public List<FilmDto> searchFilms(String query, String by) {
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException("Поисковый запрос не может быть пуст");
+        }
+        if (by == null || by.isBlank()) {
+            throw new IllegalArgumentException("Параметр 'by' не может быть пуст");
+        }
+
+        String normalizedBy = by.toLowerCase().trim().replaceAll("\\s+", "");
+
+        if (!normalizedBy.equals("title") && !normalizedBy.equals("director") && !normalizedBy.equals("title,director")
+                && !normalizedBy.equals("director,title")) {
+            throw new IllegalArgumentException("Параметр 'by' может принимать значения: " +
+                    "title, director");
+        }
+
+        return filmStorage.searchFilms(query, by).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<FilmDto> getFilmsByDirector(long directorId, String sortBy) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссёр не найден с id=" + directorId));
+
+        List<Film> films = filmStorage.getFilmsByDirector(directorId, sortBy);
+
+        log.info("Найдено фильмов для режиссёра {}: {}", directorId, films.size());
+
+        return films.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 }

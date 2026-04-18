@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -37,6 +38,17 @@ public final class FilmMapper {
                     .collect(Collectors.toList()));
         }
 
+        if (request.getDirectors() != null) {
+            film.setDirectors(request.getDirectors().stream()
+                    .map(d -> {
+                        Director director = new Director();
+                        director.setId(d.getId());
+                        director.setName(d.getName());
+                        return director;
+                    })
+                    .collect(Collectors.toList()));
+        }
+
         return film;
     }
 
@@ -58,6 +70,14 @@ public final class FilmMapper {
                     .collect(Collectors.toList()));
         } else {
             dto.setGenres(new ArrayList<>());
+        }
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            dto.setDirectors(film.getDirectors().stream()
+                    .map(DirectorMapper::mapToDirectorDto)
+                    .collect(Collectors.toList()));
+        } else {
+            dto.setDirectors(new ArrayList<>());
         }
 
         return dto;
@@ -83,6 +103,19 @@ public final class FilmMapper {
                         return genre;
                     })
                     .collect(Collectors.toList()));
+        }
+
+        if (request.getDirectors() != null) {
+            film.setDirectors(request.getDirectors().stream()
+                    .map(d -> {
+                        Director director = new Director();
+                        director.setId(d.getId());
+                        director.setName(d.getName());
+                        return director;
+                    })
+                    .collect(Collectors.toList()));
+        } else {
+            film.setDirectors(new ArrayList<>());
         }
 
         return film;
