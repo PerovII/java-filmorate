@@ -88,7 +88,7 @@ class FilmDbStorageTest {
         filmStorage.addLike(film2.getId(), user2.getId());
         filmStorage.addLike(film1.getId(), user1.getId());
 
-        List<Film> popular = filmStorage.getPopular(10);
+        List<Film> popular = filmStorage.getPopular(10, null, null);
 
         assertThat(popular).isNotEmpty();
         assertThat(popular.get(0).getId()).isEqualTo(film2.getId()); // У film2 больше лайков
@@ -96,7 +96,7 @@ class FilmDbStorageTest {
         filmStorage.removeLike(film2.getId(), user1.getId());
         filmStorage.removeLike(film2.getId(), user2.getId());
 
-        popular = filmStorage.getPopular(10);
+        popular = filmStorage.getPopular(10, null, null);
         assertThat(popular.get(0).getId()).isEqualTo(film1.getId()); // Теперь у film1 больше лайков
     }
 
