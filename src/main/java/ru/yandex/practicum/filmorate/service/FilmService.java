@@ -88,11 +88,16 @@ public class FilmService {
         eventService.addEvent(userId, Event.EventType.LIKE, Event.Operation.REMOVE, filmId);
     }
 
-    public List<FilmDto> getPopularFilms(int count) {
+    public List<FilmDto> getPopularFilms(int count, Long genreId, Integer year) {
         if (count < 1) {
-            throw new IllegalArgumentException("Параметр count должен быть больше 0.");
+            throw new IllegalArgumentException("Количество популярных фильмов(count) должно быть больше 0.");
         }
-        return filmStorage.getPopular(count).stream()
+        if (genreId != null) {
+            genreStorage.findById(genreId)
+                    .orElseThrow(() -> new NotFoundException("Жанр не найден с id " + genreId));
+        }
+
+        return filmStorage.getPopular(count, genreId, year).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
     }
