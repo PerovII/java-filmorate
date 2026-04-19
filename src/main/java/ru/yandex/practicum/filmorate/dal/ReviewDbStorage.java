@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
-
 import java.util.List;
 import java.util.Optional;
 

@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.*;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,8 +73,6 @@ public class FilmService {
         filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("Фильм не найден"));
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         filmStorage.addLike(filmId, userId);
-
-        // Добавляем событие о лайке
         eventService.addEvent(userId, Event.EventType.LIKE, Event.Operation.ADD, filmId);
     }
 
@@ -83,8 +80,6 @@ public class FilmService {
         filmStorage.findById(filmId).orElseThrow(() -> new NotFoundException("Фильм не найден"));
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         filmStorage.removeLike(filmId, userId);
-
-        // Добавляем событие об удалении лайка
         eventService.addEvent(userId, Event.EventType.LIKE, Event.Operation.REMOVE, filmId);
     }
 
@@ -152,6 +147,21 @@ public class FilmService {
         log.info("Найдено фильмов для режиссёра {}: {}", directorId, films.size());
 
         return films.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователь (друг) с id " + friendId + " не найден"));
+
+        List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+
+        log.info("Найдено общих фильмов: {}", commonFilms.size());
+
+        return commonFilms.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
     }

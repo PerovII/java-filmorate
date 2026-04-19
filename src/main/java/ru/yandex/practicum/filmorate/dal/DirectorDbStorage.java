@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
-
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -79,11 +78,6 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
     @Override
     public List<Director> getDirectorsByFilmId(long filmId) {
         return findMany(GET_DIRECTORS_BY_FILM_QUERY, filmId);
-    }
-
-    @Override
-    public void addDirectorToFIlm(long filmId, long directorId) {
-        jdbc.update(ADD_DIRECTOR_TO_FILM, filmId, directorId);
     }
 
     @Override
