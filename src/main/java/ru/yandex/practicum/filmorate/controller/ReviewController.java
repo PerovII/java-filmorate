@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<ReviewDto> create(@RequestBody ReviewDto dto) {
+    public ResponseEntity<ReviewDto> create(@Valid @RequestBody ReviewDto dto) {
         log.info("Запрос на создание отзыва: {}", dto);
         return ResponseEntity.ok(reviewService.create(dto));
     }
@@ -31,7 +32,7 @@ public class ReviewController {
     }
 
     @PutMapping
-    public ResponseEntity<ReviewDto> update(@RequestBody UpdateReviewRequest updateReviewRequest) {
+    public ResponseEntity<ReviewDto> update(@Valid @RequestBody UpdateReviewRequest updateReviewRequest) {
         log.info("Запрос на обновление отзыва: {}", updateReviewRequest);
         return ResponseEntity.ok(reviewService.update(updateReviewRequest));
     }

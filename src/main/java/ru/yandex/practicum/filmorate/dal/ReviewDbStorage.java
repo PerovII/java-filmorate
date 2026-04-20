@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.jdbc.core.RowMapper;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 import java.util.List;
@@ -35,7 +36,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             """;
     private static final String UPDATE_QUERY = """
             UPDATE reviews
-            SET content = ?, is_positive = ?, user_id = ?, film_id = ?, useful = ?
+            SET content = ?, is_positive = ?
             WHERE review_id = ?
             """;
     private static final String FIND_ALL_QUERY = """
@@ -44,6 +45,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             WHERE (? IS NULL OR film_id = ?)
             ORDER BY useful DESC
             LIMIT ?
+            """;
+
+    private static final String MERGE_LIKE_QUERY = """
+            MERGE INTO review_likes (review_id, user_id, is_like)
+            VALUES (?, ?, ?)
             """;
 
     @Autowired
@@ -69,21 +75,29 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Review update(Review review) {
-        update(UPDATE_QUERY,
+        int updatedRows = jdbc.update(UPDATE_QUERY,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUserId(),
-                review.getFilmId(),
-                review.getUseful(),
                 review.getReviewId()
         );
-        log.info("Updated review {}", review);
-        return review;
+
+        if (updatedRows == 0) {
+            throw new NotFoundException("Отзыв с id " + review.getReviewId() + " не найден");
+        }
+
+        Review updatedReview = getById(review.getReviewId())
+                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+        log.info("Updated review {}", updatedReview);
+        return updatedReview;
     }
 
     @Override
     public void delete(Long id) {
-        delete(DELETE_BY_ID_QUERY, id);
+        jdbc.update("DELETE FROM review_likes WHERE review_id = ?", id);
+        int deleted = jdbc.update(DELETE_BY_ID_QUERY, id);
+        if (deleted == 0) {
+            throw new NotFoundException("Отзыв с id " + id + " не найден");
+        }
         log.info("Deleted review {}", id);
     }
 
@@ -110,11 +124,9 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public void addLike(Long reviewId, Long userId, boolean isLike) {
-        if (insert(INSERT_LIKE_QUERY, reviewId, userId, isLike) == -1) {
-            update(UPDATE_LIKE_QUERY, isLike, reviewId, userId);
-        }
+        jdbc.update(MERGE_LIKE_QUERY, reviewId, userId, isLike);
         updateUseful(reviewId);
-        log.info("Added like review {}", reviewId);
+        log.info("Merged like/dislike for review {}", reviewId);
     }
 
     private void updateUseful(Long reviewId) {

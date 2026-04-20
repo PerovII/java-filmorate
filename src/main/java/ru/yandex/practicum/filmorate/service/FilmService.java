@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -51,7 +52,7 @@ public class FilmService {
     }
 
     public FilmDto create(NewFilmRequest request) {
-        validateMpaAndGenres(request.getMpa().getId(), request.getGenres());
+        validateMpaGenresAndDirectors(request.getMpa().getId(), request.getGenres(), request.getDirectors());
 
         Film film = FilmMapper.mapToFilm(request);
         film = filmStorage.save(film);
@@ -62,7 +63,7 @@ public class FilmService {
         Film film = filmStorage.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
 
-        validateMpaAndGenres(request.getMpa().getId(), request.getGenres());
+        validateMpaGenresAndDirectors(request.getMpa().getId(), request.getGenres(), request.getDirectors());
 
         Film updatedFilm = FilmMapper.updateFilmFields(film, request);
         updatedFilm = filmStorage.update(updatedFilm);
@@ -97,7 +98,7 @@ public class FilmService {
                 .collect(Collectors.toList());
     }
 
-    private void validateMpaAndGenres(Long mpaId, List<Genre> genres) {
+    private void validateMpaGenresAndDirectors(Long mpaId, List<Genre> genres, List<Director> directors) {
         if (mpaId != null) {
             mpaStorage.findById(mpaId)
                     .orElseThrow(() -> new NotFoundException("Рейтинг MPA не найден"));
@@ -106,6 +107,13 @@ public class FilmService {
             for (Genre genre : genres) {
                 genreStorage.findById(genre.getId())
                         .orElseThrow(() -> new NotFoundException("Жанр с id " + genre.getId() + " не найден"));
+            }
+        }
+        // Добавлена проверка режиссеров
+        if (directors != null) {
+            for (Director director : directors) {
+                directorStorage.findById(director.getId())
+                        .orElseThrow(() -> new NotFoundException("Режиссёр с id " + director.getId() + " не найден"));
             }
         }
     }

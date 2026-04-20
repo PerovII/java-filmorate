@@ -52,7 +52,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeLike(@PathVariable long filmId, @PathVariable long userId) {
         log.info("Запрос на удаление лайка, фильм id = {}, пользователь id = {}", filmId, userId);
         filmService.removeLike(filmId, userId);
@@ -68,7 +67,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable long filmId) {
         log.info("Запрос на удаление фильма id={}", filmId);
         filmService.delete(filmId);

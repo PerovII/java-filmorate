@@ -22,7 +22,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, " +
             "release_date = ?, duration = ?, rating_id = ? WHERE film_id = ?";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE film_id = ?";
-    private static final String ADD_LIKE_QUERY = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
+    private static final String ADD_LIKE_QUERY = "MERGE INTO film_likes (film_id, user_id) VALUES (?, ?)";
     private static final String REMOVE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRE_QUERY = "DELETE FROM film_genre WHERE film_id = ?";
@@ -62,6 +62,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         film.setId(id);
         updateGenres(film);
         updateDirectors(film);
+        loadGenres(film);
+        loadDirectors(film);
         return film;
     }
 
@@ -70,6 +72,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
         updateGenres(film);
         updateDirectors(film);
+        loadGenres(film);
+        loadDirectors(film);
         return film;
     }
 
@@ -321,24 +325,31 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
         String normalizedBy = by.toLowerCase().trim().replaceAll("\\s+", "");
 
+        // Общая часть запроса для группировки и сортировки по лайкам
+        String groupByAndOrder = " GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_id, r.name " +
+                "ORDER BY likes_count DESC";
+
         String searchByTitle =
-                "SELECT f.*, r.name AS rating_name FROM films f " +
+                "SELECT f.*, r.name AS rating_name, COUNT(DISTINCT fl.user_id) AS likes_count FROM films f " +
                         "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
-                        "WHERE LOWER(f.name) LIKE ?";
+                        "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
+                        "WHERE LOWER(f.name) LIKE ?" + groupByAndOrder;
 
         String searchByDirector =
-                "SELECT DISTINCT f.*, r.name AS rating_name FROM films f " +
+                "SELECT f.*, r.name AS rating_name, COUNT(DISTINCT fl.user_id) AS likes_count FROM films f " +
                         "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                        "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
                         "INNER JOIN film_directors fd ON f.film_id = fd.film_id " +
                         "INNER JOIN directors d ON fd.director_id = d.director_id " +
-                        "WHERE LOWER(d.name) LIKE ?";
+                        "WHERE LOWER(d.name) LIKE ?" + groupByAndOrder;
 
         String searchByBoth =
-                "SELECT DISTINCT f.*, r.name AS rating_name FROM films f " +
+                "SELECT f.*, r.name AS rating_name, COUNT(DISTINCT fl.user_id) AS likes_count FROM films f " +
                         "LEFT JOIN film_ratings r ON f.rating_id = r.rating_id " +
+                        "LEFT JOIN film_likes fl ON f.film_id = fl.film_id " +
                         "LEFT JOIN film_directors fd ON f.film_id = fd.film_id " +
                         "LEFT JOIN directors d ON fd.director_id = d.director_id " +
-                        "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?";
+                        "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?" + groupByAndOrder;
 
         if (normalizedBy.equals("title")) {
             films = findMany(searchByTitle, searchPattern);
