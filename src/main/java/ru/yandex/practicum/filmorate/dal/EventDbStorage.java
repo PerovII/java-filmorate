@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
-
 import java.util.List;
 
+@Primary
 @Repository("eventDbStorage")
 @RequiredArgsConstructor
 public class EventDbStorage implements EventStorage {
@@ -17,7 +18,7 @@ public class EventDbStorage implements EventStorage {
     private final RowMapper<Event> mapper;
 
     private static final String GET_USER_EVENTS_QUERY =
-            "SELECT * FROM user_events WHERE user_id = ? ORDER BY timestamp ASC";
+            "SELECT * FROM user_events WHERE user_id = ? ORDER BY timestamp ASC, event_id ASC";
 
     private static final String INSERT_EVENT_QUERY =
             "INSERT INTO user_events (user_id, event_type, operation, entity_id, timestamp) " +
