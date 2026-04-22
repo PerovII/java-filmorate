@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,5 +89,17 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
     @Override
     public void addDirectorToFilm(long filmId, long directorId) {
         jdbc.update(ADD_DIRECTOR_TO_FILM, filmId, directorId);
+    }
+
+    @Override
+    public List<Director> findAllById(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String query = String.format("SELECT * FROM directors WHERE director_id IN (%s)", inSql);
+
+        return jdbc.query(query, mapper, ids.toArray());
     }
 }

@@ -19,15 +19,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             INSERT INTO reviews (content, is_positive, user_id, film_id, useful)
             VALUES (?, ?, ?, ?, 0)
             """;
-    private static final String INSERT_LIKE_QUERY = """
-            INSERT INTO review_likes (review_id, user_id, is_like)
-            VALUES (?, ?, ?)
-            """;
-    private static final String UPDATE_LIKE_QUERY = """
-            UPDATE review_likes
-            SET is_like = ?
-            WHERE review_id = ? AND user_id = ?
-            """;
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = ?";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM reviews WHERE review_id = ?";
     private static final String DELETE_LIKE_QUERY = """

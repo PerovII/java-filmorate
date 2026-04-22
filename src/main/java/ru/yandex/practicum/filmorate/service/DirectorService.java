@@ -31,17 +31,18 @@ public class DirectorService {
     }
 
     public DirectorDto create(DirectorDto directorDto) {
-        Director director = new Director();
-        director.setName(directorDto.getName());
+        Director director = DirectorMapper.mapToDirector(directorDto);
         director = directorStorage.save(director);
         return DirectorMapper.mapToDirectorDto(director);
     }
 
     public DirectorDto update(DirectorDto directorDto) {
-        directorStorage.findById(directorDto.getId()).orElseThrow(() -> new NotFoundException("Режиссёр не найден"));
-        Director director = new Director();
-        director.setId(directorDto.getId());
-        director.setName(directorDto.getName());
+        if (directorDto.getId() == null) {
+            throw new IllegalArgumentException("ID режиссёра не передан");
+        }
+        directorStorage.findById(directorDto.getId())
+                .orElseThrow(() -> new NotFoundException("Режиссёр не найден"));
+        Director director = DirectorMapper.mapToDirector(directorDto);
         director = directorStorage.update(director);
         return DirectorMapper.mapToDirectorDto(director);
     }

@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,5 +26,17 @@ public class GenreDbStorage implements GenreStorage {
     public Optional<Genre> findById(long id) {
         String sql = "SELECT * FROM genres WHERE genre_id = ?";
         return jdbc.query(sql, mapper, id).stream().findFirst();
+    }
+
+    @Override
+    public List<Genre> findAllById(List<Long> id) {
+        if (id == null || id.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String inSql = String.join(",", Collections.nCopies(id.size(), "?"));
+        String query = String.format("SELECT * FROM genres WHERE genre_id IN (%s)", inSql);
+
+        return jdbc.query(query, mapper, id.toArray());
     }
 }

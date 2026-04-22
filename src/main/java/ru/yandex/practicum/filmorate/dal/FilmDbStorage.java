@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+
 import java.util.*;
 
 @Repository("filmDbStorage")
@@ -203,7 +204,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 FROM films f
                 LEFT JOIN film_ratings r ON f.rating_id = r.rating_id
                 JOIN film_likes fl2 ON f.film_id = fl2.film_id
-                WHERE fl2.user_id = (
+                JOIN (
                     SELECT fl2.user_id
                     FROM film_likes fl1
                     JOIN film_likes fl2 ON fl1.film_id = fl2.film_id
@@ -212,12 +213,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     GROUP BY fl2.user_id
                     ORDER BY COUNT(*) DESC
                     LIMIT 1
-                )
-                AND f.film_id NOT IN (
-                    SELECT film_id
-                    FROM film_likes
-                    WHERE user_id = ?
-                )
+                ) sim ON fl2.user_id = sim.user_id
+                LEFT JOIN film_likes fl_user 
+                    ON f.film_id = fl_user.film_id
+                    AND fl_user.user_id = ?
+                WHERE fl_user.user_id IS NULL
                 """;
 
         List<Film> films = findMany(sql, userId, userId, userId);

@@ -103,17 +103,28 @@ public class FilmService {
             mpaStorage.findById(mpaId)
                     .orElseThrow(() -> new NotFoundException("Рейтинг MPA не найден"));
         }
-        if (genres != null) {
-            for (Genre genre : genres) {
-                genreStorage.findById(genre.getId())
-                        .orElseThrow(() -> new NotFoundException("Жанр с id " + genre.getId() + " не найден"));
+
+        if (genres != null && !genres.isEmpty()) {
+            List<Long> genreIds = genres.stream()
+                    .map(Genre::getId)
+                    .distinct()
+                    .toList();
+
+            List<Genre> existingGenres = genreStorage.findAllById(genreIds);
+            if (existingGenres.size() != genreIds.size()) {
+                throw new NotFoundException("Один или несколько переданных жанров не найдены в БД");
             }
         }
-        // Добавлена проверка режиссеров
-        if (directors != null) {
-            for (Director director : directors) {
-                directorStorage.findById(director.getId())
-                        .orElseThrow(() -> new NotFoundException("Режиссёр с id " + director.getId() + " не найден"));
+
+        if (directors != null && !directors.isEmpty()) {
+            List<Long> directorIds = directors.stream()
+                    .map(Director::getId)
+                    .distinct()
+                    .toList();
+
+            List<Director> existingDirectors = directorStorage.findAllById(directorIds);
+            if (existingDirectors.size() != directorIds.size()) {
+                throw new NotFoundException("Один или несколько переданных режиссёров не найдены в БД");
             }
         }
     }

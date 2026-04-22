@@ -9,9 +9,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,8 +50,7 @@ public class ReviewService {
     }
 
     public ReviewDto update(UpdateReviewRequest updateReviewRequest) {
-        Review existingReview = reviewStorage.getById(updateReviewRequest.getReviewId())
-                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+        Review existingReview = checkReviewExists(updateReviewRequest.getReviewId());
 
         Review updatedReview = ReviewMapper.updateReviewFields(existingReview, updateReviewRequest);
         ReviewDto savedReview = ReviewMapper.toDto(reviewStorage.update(updatedReview));
@@ -64,7 +65,7 @@ public class ReviewService {
     }
 
     public ReviewDto getById(Long id) {
-        Review review = reviewStorage.getById(id).orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+        Review review = checkReviewExists(id);
         return ReviewMapper.toDto(review);
     }
 
@@ -79,8 +80,7 @@ public class ReviewService {
 
 
     public void delete(Long id) {
-        Review review = reviewStorage.getById(id)
-                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+        Review review = checkReviewExists(id);
 
         reviewStorage.delete(id);
 
@@ -98,26 +98,31 @@ public class ReviewService {
     }
 
     public void addLike(Long reviewId, Long userId) {
-        reviewStorage.getById(reviewId).orElseThrow(() -> new NotFoundException("Отзыв не найден"));
-        userStorage.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь c id = " + userId + "не найден")
-        );
+        checkReviewExists(reviewId);
+        checkUserExists(userId);
         reviewStorage.addLike(reviewId, userId, true);
     }
 
     public void addDislike(Long reviewId, Long userId) {
-        reviewStorage.getById(reviewId).orElseThrow(() -> new NotFoundException("Отзыв не найден"));
-        userStorage.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь c id = " + userId + "не найден")
-        );
+        checkReviewExists(reviewId);
+        checkUserExists(userId);
         reviewStorage.addLike(reviewId, userId, false);
     }
 
     public void removeLike(Long reviewId, Long userId) {
-        reviewStorage.getById(reviewId).orElseThrow(() -> new NotFoundException("Отзыв не найден"));
-        userStorage.findById(userId).orElseThrow(
+        checkReviewExists(reviewId);
+        checkUserExists(userId);
+        reviewStorage.removeLike(reviewId, userId);
+    }
+
+    private Review checkReviewExists(long reviewId) throws NotFoundException {
+        return reviewStorage.getById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+    }
+
+    private User checkUserExists(long userId) throws NotFoundException {
+        return userStorage.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь c id = " + userId + "не найден")
         );
-        reviewStorage.removeLike(reviewId, userId);
     }
 }

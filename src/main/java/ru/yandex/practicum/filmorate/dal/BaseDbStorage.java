@@ -46,7 +46,6 @@ public class BaseDbStorage<T> {
 
     protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        try {
             jdbc.update(connection -> {
                 PreparedStatement ps = connection
                         .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -68,9 +67,6 @@ public class BaseDbStorage<T> {
             } else {
                 throw new InternalServerException("Не удалось сохранить данные");
             }
-        } catch (DuplicateKeyException e) {
-            return -1;
-        }
     }
 
 
