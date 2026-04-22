@@ -214,7 +214,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     ORDER BY COUNT(*) DESC
                     LIMIT 1
                 ) sim ON fl2.user_id = sim.user_id
-                LEFT JOIN film_likes fl_user 
+                LEFT JOIN film_likes fl_user
                     ON f.film_id = fl_user.film_id
                     AND fl_user.user_id = ?
                 WHERE fl_user.user_id IS NULL
