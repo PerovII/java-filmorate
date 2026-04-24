@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.validation.MinDate;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,4 +27,5 @@ public class NewFilmRequest {
 
     private Mpa mpa;
     private List<Genre> genres;
+    private List<Director> directors;
 }

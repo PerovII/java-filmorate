@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -52,6 +53,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFriend(@PathVariable long userId, @PathVariable long friendId) {
         log.info("Запрос на удаление пользователя id={} из друзей id={}", friendId, userId);
         userService.deleteFriend(userId, friendId);
@@ -67,5 +69,18 @@ public class UserController {
     public List<UserDto> getCommonFriends(@PathVariable long userId, @PathVariable long otherUserId) {
         log.info("Запрос на общих друзей между id={} и id={}", userId, otherUserId);
         return userService.getCommonFriends(userId, otherUserId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable Long id) {
+        log.info("Запрос рекомендаций для пользователя с id={}", id);
+        return userService.getRecommendations(id);
+    }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable long userId) {
+        log.info("Запрос на удаление пользователя id={}", userId);
+        userService.delete(userId);
     }
 }

@@ -1,13 +1,16 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.List;
 import java.util.Optional;
 
+@Primary
 @Repository("userDbStorage")
 public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
@@ -30,6 +33,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "JOIN friends f1 ON u.user_id = f1.friend_id " +
             "JOIN friends f2 ON u.user_id = f2.friend_id " +
             "WHERE f1.user_id = ? AND f2.user_id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM users WHERE user_id = ?";
 
     public UserDbStorage(JdbcTemplate jdbc, RowMapper<User> mapper) {
         super(jdbc, mapper);
@@ -66,7 +70,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public void addFriend(long userId, long friendId) {
         Integer count = jdbc.queryForObject(CHECK_FRIENDSHIP_EXISTS_QUERY, Integer.class, userId, friendId);
-        if (count == null || count == 0) {
+        if (count == 0) {
             jdbc.update(INSERT_FRIEND_QUERY, userId, friendId);
         }
     }
@@ -84,5 +88,13 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public List<User> getCommonFriends(long userId, long otherUserId) {
         return findMany(GET_COMMON_FRIENDS_QUERY, userId, otherUserId);
+    }
+
+    @Override
+    public void delete(long id) {
+        boolean deleted = delete(DELETE_QUERY, id);
+        if (!deleted) {
+            throw new NotFoundException("Пользователь с id " + id + " не найден");
+        }
     }
 }

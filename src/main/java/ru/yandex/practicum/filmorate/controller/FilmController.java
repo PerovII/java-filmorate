@@ -58,8 +58,41 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        log.info("Запрос списка первых {} популярных фильмов", count);
-        return filmService.getPopularFilms(count);
+    public List<FilmDto> getPopular(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Integer year) {
+        log.info("Запрос на получение популярных фильмов: count={}, genreId={}, year={}", count, genreId, year);
+        return filmService.getPopularFilms(count, genreId, year);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable long filmId) {
+        log.info("Запрос на удаление фильма id={}", filmId);
+        filmService.delete(filmId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(
+            @PathVariable long directorId,
+            @RequestParam(required = false) String sortBy) {
+        log.info("Запрос на получение фильмов режиссёра id={}, sortBy={}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> searchFilms(
+            @RequestParam String query,
+            @RequestParam String by) {
+        log.info("Поиск фильмов: query='{}', by='{}'", query, by);
+        return filmService.searchFilms(query, by);
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(
+            @RequestParam long userId,
+            @RequestParam long friendId) {
+        log.info("Запрос на получение общих фильмов для пользователей id={} и id={}", userId, friendId);
+        return filmService.getCommonFilms(userId, friendId);
     }
 }
